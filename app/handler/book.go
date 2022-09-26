@@ -1,39 +1,40 @@
-package book
+package handler
 
 import (
 	"net/http"
 	"strconv"
 
-	"book-api/models"
+	"book-api/app/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-var conn = models.GetConnection()
+// var conn = models.GetConnection()
 
-func GetIndexHandler(c *gin.Context) {
+func GetIndexHandler(db *gorm.DB, c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"name": "gabriel",
 	})
 }
 
-func GetBooks(c *gin.Context) {
+func GetBooks(db *gorm.DB, c *gin.Context) {
 	var book []models.Book
-	conn.Find(&book)
+	db.Find(&book)
 
 	c.JSON(http.StatusOK, book)
 }
 
-func GetBookByTitle(c *gin.Context) {
+func GetBookByTitle(db *gorm.DB, c *gin.Context) {
 	var book []models.Book
 	title := c.Param("title")
 
-	conn.Where("title = ?", title).Find(&book)
+	db.Where("title = ?", title).Find(&book)
 
 	c.JSON(http.StatusOK, book)
 }
 
-func PostBook(c *gin.Context) {
+func PostBook(db *gorm.DB, c *gin.Context) {
 	title := c.PostForm("title")
 	desc := c.PostForm("description")
 	price, _ := strconv.Atoi(c.PostForm("price"))
@@ -46,7 +47,7 @@ func PostBook(c *gin.Context) {
 		Rating:      rating,
 	}
 
-	conn.Create(&data)
+	db.Create(&data)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"ID":          data.ID,
@@ -57,7 +58,7 @@ func PostBook(c *gin.Context) {
 	})
 }
 
-func UpdateBook(c *gin.Context) {
+func UpdateBook(db *gorm.DB, c *gin.Context) {
 	book := c.Param("book")
 
 	title := c.PostForm("title")
@@ -72,17 +73,17 @@ func UpdateBook(c *gin.Context) {
 		Rating:      rating,
 	}
 
-	conn.Model(&models.Book{}).Where("title = ?", book).Updates(&data)
+	db.Model(&models.Book{}).Where("title = ?", book).Updates(&data)
 
 	c.JSON(http.StatusOK, &data)
 }
 
-func DeleteBook(c *gin.Context) {
+func DeleteBook(db *gorm.DB, c *gin.Context) {
 	title := c.Param("title")
 
 	var book models.Book
 
-	conn.Where("title = ?", title).Delete(&book)
+	db.Where("title = ?", title).Delete(&book)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Book has been deleted",

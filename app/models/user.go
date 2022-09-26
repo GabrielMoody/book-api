@@ -17,11 +17,7 @@ var conn = GetConnection()
 func GetUserByUsername(username string) *User {
 	var user *User
 
-	res := conn.Where("username = ?", username).Find(&user)
-
-	if res.RowsAffected < 1 {
-		return nil
-	}
+	conn.Where("username = ?", username).Find(&user)
 
 	return user
 }

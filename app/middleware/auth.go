@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"book-api/models"
+	"book-api/app/models"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"

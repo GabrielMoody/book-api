@@ -1,31 +1,14 @@
 package main
 
 import (
-	"book-api/book"
-	"book-api/middleware"
-	"book-api/user"
-
-	"github.com/gin-gonic/gin"
+	"book-api/app"
+	"book-api/config"
 )
 
 func main() {
-	router := gin.Default()
+	config := config.GetConfig()
 
-	router.GET("/", middleware.BasicAuth, book.GetIndexHandler)
-
-	authorized := router.Group("/")
-
-	authorized.Use(middleware.BasicAuth)
-	{
-		authorized.GET("/books", book.GetBooks)
-		authorized.POST("/book", book.PostBook)
-		authorized.GET("/book/:title", book.GetBookByTitle)
-		authorized.PUT("/book/:book", book.UpdateBook)
-		authorized.DELETE("/book/:title", book.DeleteBook)
-	}
-
-	router.POST("/register", user.CreateUser)
-	router.POST("/login", user.Login)
-
-	router.Run("localhost:3000")
+	app := app.App{}
+	app.Initialize(config)
+	app.Router.Run("localhost:3000")
 }

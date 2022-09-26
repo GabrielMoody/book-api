@@ -1,20 +1,21 @@
-package user
+package handler
 
 import (
-	"book-api/models"
+	"book-api/app/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
-var conn = models.GetConnection()
+// var conn = models.GetConnection()
 
-func Login(c *gin.Context) {
+func Login(db *gorm.DB, c *gin.Context) {
 	var user models.User
 	username := c.PostForm("username")
 	password := c.PostForm("password")
-	result := conn.Where("username = ?", username).Find(&user)
+	result := db.Where("username = ?", username).Find(&user)
 
 	if result.RowsAffected < 1 {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -42,7 +43,7 @@ func Login(c *gin.Context) {
 	})
 }
 
-func CreateUser(c *gin.Context) {
+func CreateUser(db *gorm.DB, c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
@@ -57,7 +58,7 @@ func CreateUser(c *gin.Context) {
 		Password: string(hashed),
 	}
 
-	conn.Create(&data)
+	db.Create(&data)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"status":  "Succes",

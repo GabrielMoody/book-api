@@ -40,11 +40,11 @@ func (a *App) Initialize(config *config.Config) {
 }
 
 func (a *App) SetRouters() {
-	a.Router.GET("/", middleware.BasicAuth, a.handleRequest(handler.GetIndexHandler))
+	a.Router.GET("/", a.handleRequest(middleware.BasicAuth), a.handleRequest(handler.GetIndexHandler))
 
 	authorized := a.Router.Group("/")
 
-	authorized.Use(middleware.BasicAuth)
+	authorized.Use(a.handleRequest(middleware.BasicAuth))
 	{
 		authorized.GET("/books", a.handleRequest(handler.GetBooks))
 		authorized.POST("/book", a.handleRequest(handler.PostBook))
@@ -59,8 +59,16 @@ func (a *App) SetRouters() {
 
 type RequestHandlerFunction func(db *gorm.DB, c *gin.Context)
 
+// type MiddlewareFuntion func(db *gorm.DB, any ...interface{})
+
 func (a *App) handleRequest(handler RequestHandlerFunction) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		handler(a.DB, c)
 	}
 }
+
+// func (a *App) middlewareRequest(m MiddlewareFuntion) gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		m(a.DB, c)
+// 	}
+// }

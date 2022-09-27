@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -12,12 +14,10 @@ type User struct {
 	UpdatedAt time.Time
 }
 
-var conn = GetConnection()
-
-func GetUserByUsername(username string) *User {
+func GetUserByUsername(db *gorm.DB, username string) *User {
 	var user *User
 
-	conn.Where("username = ?", username).Find(&user)
+	db.Where("username = ?", username).Find(&user)
 
 	return user
 }

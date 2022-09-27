@@ -7,11 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
-func BasicAuth(c *gin.Context) {
+func BasicAuth(db *gorm.DB, c *gin.Context) {
 	username, password, ok := c.Request.BasicAuth()
-	user := models.GetUserByUsername(username)
+	user := models.GetUserByUsername(db, username)
 
 	if !ok || user == nil {
 		c.Abort()

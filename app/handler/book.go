@@ -1,16 +1,22 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
-	"strconv"
 
 	"book-api/app/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
-// var conn = models.GetConnection()
+type Book struct {
+	Title       string `json:"title" form:"title" binding:"required"`
+	Description string `json:"description" form:"description" binding:"required"`
+	Price       int    `json:"price" form:"price" binding:"required"`
+	Rating      int    `json:"rating" form:"rating" binding:"required"`
+}
 
 func GetIndexHandler(db *gorm.DB, c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
@@ -35,16 +41,35 @@ func GetBookByTitle(db *gorm.DB, c *gin.Context) {
 }
 
 func PostBook(db *gorm.DB, c *gin.Context) {
-	title := c.PostForm("title")
-	desc := c.PostForm("description")
-	price, _ := strconv.Atoi(c.PostForm("price"))
-	rating, _ := strconv.Atoi(c.PostForm("rating"))
+	book := Book{}
+
+	err := c.ShouldBind(&book)
+
+	if err != nil {
+		var ve validator.ValidationErrors
+
+		if errors.As(err, &ve) {
+			errors := make([]ErrorMsg, len(ve))
+
+			for i, e := range ve {
+				errors[i] = ErrorMsg{Field: e.Field(), Message: e.Error()}
+			}
+
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"errors": errors,
+			})
+
+		}
+
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
 	data := models.Book{
-		Title:       title,
-		Description: desc,
-		Price:       price,
-		Rating:      rating,
+		Title:       book.Title,
+		Description: book.Description,
+		Price:       book.Price,
+		Rating:      book.Rating,
 	}
 
 	db.Create(&data)
@@ -59,21 +84,39 @@ func PostBook(db *gorm.DB, c *gin.Context) {
 }
 
 func UpdateBook(db *gorm.DB, c *gin.Context) {
-	book := c.Param("book")
+	title := c.Param("book")
 
-	title := c.PostForm("title")
-	desc := c.PostForm("description")
-	price, _ := strconv.Atoi(c.PostForm("price"))
-	rating, _ := strconv.Atoi(c.PostForm("rating"))
+	book := Book{}
 
-	data := models.Book{
-		Title:       title,
-		Description: desc,
-		Price:       price,
-		Rating:      rating,
+	err := c.ShouldBind(&book)
+
+	if err != nil {
+		var ve validator.ValidationErrors
+
+		if errors.As(err, &ve) {
+			errors := make([]ErrorMsg, len(ve))
+
+			for i, e := range ve {
+				errors[i] = ErrorMsg{Field: e.Field(), Message: e.Error()}
+			}
+
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"erorrs": errors,
+			})
+
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
 	}
 
-	db.Model(&models.Book{}).Where("title = ?", book).Updates(&data)
+	data := models.Book{
+		Title:       book.Title,
+		Description: book.Description,
+		Price:       book.Price,
+		Rating:      book.Rating,
+	}
+
+	db.Model(&models.Book{}).Where("title = ?", title).Updates(&data)
 
 	c.JSON(http.StatusOK, &data)
 }

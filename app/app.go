@@ -54,7 +54,8 @@ func (a *App) SetRouters() {
 	}
 
 	a.Router.POST("/register", a.handleRequest(handler.CreateUser))
-	a.Router.POST("/login", a.handleRequest(handler.Login))
+	a.Router.POST("/login", a.handleRequest(handler.UserLogin))
+
 }
 
 type RequestHandlerFunction func(db *gorm.DB, c *gin.Context)
